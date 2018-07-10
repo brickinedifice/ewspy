@@ -42,6 +42,7 @@ class EWS_Client:
                 self,
                 username,
                 password,
+                find_items_basepoint='Beginning',
                 wsdl='Services.wsdl',
                 timeout=120,
                 max_folder_items_per_find_item_query=1000,
@@ -50,6 +51,7 @@ class EWS_Client:
     ):
         self.username=username
         self.password=password
+        self.find_items_basepoint=find_items_basepoint
         self.wsdl=wsdl
         self.timeout=timeout
         self.max_folder_items_per_find_item_query=max_folder_items_per_find_item_query
@@ -68,9 +70,9 @@ class EWS_Client:
             EWS_Client.logger = logger
 
 
-    def ews_exception(ews_function, *args):
+    def ews_exception(ews_function, *args, **kwargs):
 
-        def _f_(*args):
+        def _f_(*args, **kwargs):
             try:
                 return ews_function(*args)
             except KeyError as _e:
@@ -277,7 +279,7 @@ class EWS_Client:
                                                     IndexedPageItemView={
                                                         'MaxEntriesReturned':self.max_folder_items_per_find_item_query,
                                                         'Offset':offset,
-                                                        'BasePoint':'End',
+                                                        'BasePoint':self.find_items_basepoint,
                                                     },
                                                     FractionalPageItemView=FractionalPageItemView,
                                                     CalendarView=CalendarView,
@@ -295,7 +297,7 @@ class EWS_Client:
 
 
     @ews_exception
-    def get_all_items_in_folder(self, folder_type, folder_id):
+    def get_all_items_in_folder(self, folder_type, folder_id, query=None):
 
         # set up dataframe that will returned
         _index=pd.Index([],name='item_id',dtype=str)
@@ -322,7 +324,7 @@ class EWS_Client:
             _client = Client(self.wsdl, transport=Transport(session=_session))
 
             # get the items; most options are defaulted
-            _response = self.find_items(folder_type, folder_id, _beg)
+            _response = self.find_items(folder_type, folder_id, _beg, QueryString=query)
 
             # close temporary session
             _session.close()
