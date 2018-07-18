@@ -311,6 +311,12 @@ class EWS_Client:
 
         EWS_Client.logger.info('..folder_items_count:{0}'.format(_folder_items_count))
 
+        # if there are no items in the folder
+        if not(bool(_folder_items_count)):
+
+            # return None
+            raise StopIteration('Empty outlook folder') 
+
         # go through each session
         # for _beg in list(_entries_item_ids_in_view_beg):
         for _beg in range(0, _folder_items_count, self.max_folder_items_per_find_item_query):
